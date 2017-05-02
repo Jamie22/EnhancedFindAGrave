@@ -181,8 +181,6 @@ class GraveSpider(scrapy.Spider):
                     response.urljoin(next_page),
                     callback=self.parse
                 )
-            else:
-                file.write(html_footer)
 
         # This method is called when the birth is unknown. This will check if the age at death is given on the grave's
         # page, and use it to calculate an estimated birth year
@@ -224,3 +222,7 @@ class GraveSpider(scrapy.Spider):
             write_html_entry(file, item)
 
             yield item
+
+        def closed(self, reason):
+            file = open('searchresults.html', 'a')
+            file.write(html_footer)

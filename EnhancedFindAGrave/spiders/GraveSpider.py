@@ -1,8 +1,11 @@
-import scrapy
 import datetime
 from string import Template
+
+import scrapy
 from dateutil.parser import parse
-import searchparameters as param
+
+from EnhancedFindAGrave import searchparameters as param
+from EnhancedFindAGrave.items import GraveItem
 
 html_header = """<!DOCTYPE html>
 <html>
@@ -69,24 +72,6 @@ def write_html_entry(file, item):
                     birth=item['birth'], death=item['death'], cemetery=item['cemetery'], location=item['location'])
 
     file.write(html_entry)
-
-
-class GraveItem(scrapy.Item):
-    name_first = scrapy.Field()
-    name_last = scrapy.Field()
-    name_maiden = scrapy.Field()
-    has_grave_photo = scrapy.Field()
-    has_person_photo = scrapy.Field()
-    has_flowers = scrapy.Field()
-    is_famous = scrapy.Field()
-    is_sponsored = scrapy.Field()
-    birth = scrapy.Field()
-    death = scrapy.Field()
-    birth_year = scrapy.Field()
-    death_year = scrapy.Field()
-    grave_id = scrapy.Field()
-    cemetery = scrapy.Field()
-    location = scrapy.Field()
 
 
 class GraveSpider(scrapy.Spider):

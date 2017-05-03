@@ -6,5 +6,5 @@ This tool allows you to narrow down your search results futher by giving a range
 
 ### Usage
 
-Set the search parameters in searchparameters.py. In command prompt, run scrapy runspider main.py
+Set the search parameters in searchparameters.py. In command prompt, run scrapy runspider GraveSpider.py
 An html file will be generated listing the graves that were found with links to their pages. Graves that have a grave photo are marked with an asterisk

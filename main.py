@@ -19,7 +19,8 @@ html_header = """<!DOCTYPE html>
 
 html_template = Template("""
         <div class="graveListing">
-            <a href="https://findagrave.com/cgi-bin/fg.cgi?page=gr&GRid=$graveID">$lastName, $firstName</a> $gravePhoto
+            <a href="https://findagrave.com/cgi-bin/fg.cgi?page=gr&GRid=$graveID">$lastName, $firstName 
+            <i>$maidenName</i></a> $gravePhoto
             <br/>
             $birth – $death
             <br/>
@@ -64,8 +65,8 @@ def generate_search_url():
 def write_html_entry(file, item):
     html_entry = html_template \
         .substitute(graveID=item['grave_id'], lastName=item['name_last'], firstName=item['name_first'],
-                    gravePhoto='*' if item['has_grave_photo'] else '', birth=item['birth'], death=item['death'],
-                    cemetery=item['cemetery'], location=item['location'])
+                    maidenName=item['name_maiden'] or '', gravePhoto='*' if item['has_grave_photo'] else '',
+                    birth=item['birth'], death=item['death'], cemetery=item['cemetery'], location=item['location'])
 
     file.write(html_entry)
 
@@ -73,6 +74,7 @@ def write_html_entry(file, item):
 class GraveItem(scrapy.Item):
     name_first = scrapy.Field()
     name_last = scrapy.Field()
+    name_maiden = scrapy.Field()
     has_grave_photo = scrapy.Field()
     has_person_photo = scrapy.Field()
     has_flowers = scrapy.Field()
@@ -134,6 +136,7 @@ class GraveSpider(scrapy.Spider):
                 full_name = grave.xpath('td[@align="LEFT"]/a/text()').extract_first().split(', ')
                 name_first = full_name[1]
                 name_last = full_name[0]
+                name_maiden = grave.xpath('td[@align="LEFT"]/a/i/text()').extract_first()
                 has_grave_photo = bool(grave.xpath('td[@align="LEFT"]/a/img[contains(@src, "headstone.gif")]')
                                        .extract_first())
                 has_person_photo = bool(grave.xpath('td[@align="LEFT"]/a/img[contains(@src, "photo.gif")]')
@@ -151,6 +154,7 @@ class GraveSpider(scrapy.Spider):
                 item = GraveItem()
                 item['name_first'] = name_first
                 item['name_last'] = name_last
+                item['name_maiden'] = name_maiden
                 item['has_grave_photo'] = has_grave_photo
                 item['has_person_photo'] = has_person_photo
                 item['has_flowers'] = has_flowers
@@ -189,7 +193,7 @@ class GraveSpider(scrapy.Spider):
             death_year = item['death_year']
             lines_description = response.xpath('//td[@valign="top"][@colspan="2"]/text()').extract()
             description = ' '.join(lines_description)
-            description = description.replace(':', '').replace('-', '').lower()
+            description = description.replace(':', ' ').replace('-', ' ').lower()
             words_description = description.split()
             age = ''
 
@@ -205,9 +209,10 @@ class GraveSpider(scrapy.Spider):
                     except:
                         pass
 
+            age = ''.join(c for c in age if c.isdigit())
+
             # If age is found, use it to calculate estimated birth year
             if age:
-                age = ''.join(c for c in age if c.isdigit())
                 birth_year = death_year - int(age)
 
                 # Skip this grave entry if birth year is outside the given range

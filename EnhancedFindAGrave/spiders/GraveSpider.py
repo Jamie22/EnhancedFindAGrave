@@ -1,41 +1,10 @@
 import datetime
-from string import Template
 
 import scrapy
 from dateutil.parser import parse
 
 from EnhancedFindAGrave import searchparameters as param
 from EnhancedFindAGrave.items import GraveItem
-
-html_header = """<!DOCTYPE html>
-<html>
-    <head>
-        <title>Enhanced Find A Grave search results</title>
-        <style>
-            .graveListing
-            {
-                padding-bottom:20px;
-            }
-        </style>
-    </head>
-    <body>"""
-
-html_template = Template("""
-        <div class="graveListing">
-            <a href="https://findagrave.com/cgi-bin/fg.cgi?page=gr&GRid=$graveID">$lastName, $firstName 
-            <i>$maidenName</i></a> $gravePhoto
-            <br/>
-            $birth – $death
-            <br/>
-            $cemetery
-            <br/>
-            $location
-        </div>
-""")
-
-html_footer = """
-    </body>
-</html>"""
 
 
 # Generate the URL to start scraping from based on the given search parameters
@@ -65,27 +34,11 @@ def generate_search_url():
     return [search_url]
 
 
-def write_html_entry(file, item):
-    html_entry = html_template \
-        .substitute(graveID=item['grave_id'], lastName=item['name_last'], firstName=item['name_first'],
-                    maidenName=item['name_maiden'] or '', gravePhoto='*' if item['has_grave_photo'] else '',
-                    birth=item['birth'], death=item['death'], cemetery=item['cemetery'], location=item['location'])
-
-    file.write(html_entry)
-
-
 class GraveSpider(scrapy.Spider):
         name = "grave_spider"
         start_urls = generate_search_url()
 
-        def __init__(self, *a, **kw):
-            super(GraveSpider, self).__init__(*a, **kw)
-            file = open('searchresults.html', 'w')
-            file.write(html_header)
-
         def parse(self, response):
-            file = open('searchresults.html', 'a')
-
             GRAVE_SELECTOR = '//tr[@bgcolor="DCD0CF"]'
 
             for grave in response.xpath(GRAVE_SELECTOR):
@@ -160,7 +113,6 @@ class GraveSpider(scrapy.Spider):
                     request.meta['item'] = item
                     yield request
                 else:
-                    write_html_entry(file, item)
                     yield item
 
             NEXT_PAGE_SELECTOR = '//td[@align="RIGHT"]/a[contains(text(), "Records ")]/@href'
@@ -208,11 +160,4 @@ class GraveSpider(scrapy.Spider):
                 item['birth_year'] = birth_year
                 item['birth'] = 'Est. ' + str(birth_year)
 
-            file = open('searchresults.html', 'a')
-            write_html_entry(file, item)
-
             yield item
-
-        def closed(self, reason):
-            file = open('searchresults.html', 'a')
-            file.write(html_footer)

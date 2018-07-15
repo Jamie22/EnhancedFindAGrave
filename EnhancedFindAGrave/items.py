@@ -9,11 +9,11 @@ import scrapy
 
 
 class GraveItem(scrapy.Item):
+    thumbnail = scrapy.Field()
     name_first = scrapy.Field()
     name_last = scrapy.Field()
     name_maiden = scrapy.Field()
     has_grave_photo = scrapy.Field()
-    has_person_photo = scrapy.Field()
     has_flowers = scrapy.Field()
     is_famous = scrapy.Field()
     is_sponsored = scrapy.Field()

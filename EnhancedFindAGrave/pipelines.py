@@ -15,6 +15,13 @@ html_header = """<!DOCTYPE html>
             .graveListing
             {
                 padding-bottom:20px;
+                overflow: auto;
+            }
+            
+            .thumbnail
+            {
+                float:left;
+                padding-right: 5px;
             }
         </style>
     </head>
@@ -22,8 +29,9 @@ html_header = """<!DOCTYPE html>
 
 html_template = Template("""
         <div class="graveListing">
-            <a href="https://findagrave.com/cgi-bin/fg.cgi?page=gr&GRid=$graveID">$lastName, $firstName 
-            <i>$maidenName</i></a> $gravePhoto
+            <object data="$thumbnail" class="thumbnail" type="image/jpg"></object>
+            <a href="https://findagrave.com/cgi-bin/fg.cgi?page=gr&GRid=$graveID">$firstName <i>$maidenName</i> 
+            $lastName</a> $gravePhoto
             <br/>
             $birth – $death
             <br/>
@@ -49,9 +57,10 @@ class HtmlWriterPipeline(object):
 
     def process_item(self, item, spider):
         html_entry = html_template \
-            .substitute(graveID=item['grave_id'], lastName=item['name_last'], firstName=item['name_first'],
-                        maidenName=item['name_maiden'] or '', gravePhoto='*' if item['has_grave_photo'] else '',
-                        birth=item['birth'], death=item['death'], cemetery=item['cemetery'], location=item['location'])
+            .substitute(thumbnail=item['thumbnail'], graveID=item['grave_id'], lastName=item['name_last'],
+                        firstName=item['name_first'], maidenName=item['name_maiden'] or '',
+                        gravePhoto='*' if item['has_grave_photo'] else '', birth=item['birth'], death=item['death'],
+                        cemetery=item['cemetery'], location=item['location'])
 
         self.file.write(html_entry)
         return item
